@@ -1,106 +1,230 @@
 ﻿using UnityEngine;
-using UnityEngine.UI;
 using System;
 using System.Collections.Generic;
+using UnityEngine.UI;
 
+/// <summary>
+/// 
+/// </summary>
 public class BeatController : MonoBehaviour {
 
-    public GameObject enemyBar;
-    public GameObject playerBar;
+    public GameObject enemyBar;         // holder of Enemy Beats
+    public GameObject playerBar;        // holder of Player Beats
+    
+    public GameObject enemyBeat;        // original Enemy Beat
+    public GameObject playerBeat;       // original Player Beat
 
-    public GameObject enemyBeat;
-    private GameObject[] enemyBeatList;
+    public GameObject beatZone;         // the center of the music bar
 
-    public GameObject playerBeat;
-    private GameObject[] playerBeatList;
-
-    public GameObject beatZone;
-    private Color hitColor = Color.yellow;
-    private Color defaultColor;
+    private GameObject currentEnemyBeat;
+    private GameObject currentPlayerBeat;
 
     public TextAsset csvFile;
 
-    private string[] beatTimestamps; // every timestamp of a beat in a song
+    private string[] beatTimestamps;    // every timestamp of a beat in a song
     private List<string> deliveryBeats; // beats to deploy a "Beat" on screen
-
-    public AudioSource slash;
-
-    private int cursor = 0;
-    private int angerBuildUp = 0;
     
+    private int cursor;
+    private int angerBuildUp;
+    
+    /// <summary>
+    /// 
+    /// </summary>
     void Start()
     {
-
+        currentPlayerBeat = null;
+        cursor = 1;
+        angerBuildUp = 0;
         beatTimestamps = csvFile.text.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-
         CreateBeats();
-
 	}
 	
+    /// <summary>
+    /// 
+    /// </summary>
 	void Update()
     {
-        if (cursor > deliveryBeats.Count)
+        if (currentPlayerBeat != null)
         {
-            cursor = 0;
-            CreateBeats();
+            //currentPlayerBeat.GetComponent<Outline>().enabled = true;
         }
 
-		if (Input.GetKeyDown(KeyCode.Space))
+        if (Input.GetKeyDown(KeyCode.Space))
         {
             CheckForBeat();
         }
 
+        // Generates new beat object when time to next beat is less than or equal to 3 seconds
         if (float.Parse(deliveryBeats[cursor]) - Time.timeSinceLevelLoad <= 3.0f)
         {
             if (angerBuildUp >= 10)
             {
                 angerBuildUp = 0;
-                enemyBeatList[cursor].GetComponent<BeatObject>().IsLaunched = true;
-                enemyBeatList[cursor].GetComponent<BeatObject>().IsEvil = true;
+                GameObject newBeat = Instantiate(enemyBeat, enemyBeat.transform.position, enemyBeat.transform.rotation, enemyBar.transform);
+                newBeat.GetComponent<BeatObject>().IsEvil = true;
+                newBeat.GetComponent<BeatObject>().IsLaunched = true;
+                newBeat.GetComponent<BeatObject>().IsOriginal = false;
+                newBeat.GetComponent<BeatObject>().CreateNewBeat(BeatObject.BeatType.Enemy);
             }
-            else if (UnityEngine.Random.Range(0, 5) == 1)
+            else if (UnityEngine.Random.Range(0, 10) == 1)
             {
-                enemyBeatList[cursor].GetComponent<BeatObject>().IsLaunched = true;
-                enemyBeatList[cursor].GetComponent<BeatObject>().IsEvil = true;
+                GameObject newBeat = Instantiate(enemyBeat, enemyBeat.transform.position, enemyBeat.transform.rotation, enemyBar.transform);
+                newBeat.GetComponent<BeatObject>().IsEvil = true;
+                newBeat.GetComponent<BeatObject>().IsLaunched = true;
+                newBeat.GetComponent<BeatObject>().IsOriginal = false;
+                newBeat.GetComponent<BeatObject>().CreateNewBeat(BeatObject.BeatType.Enemy);
             }
-            else if (UnityEngine.Random.Range(0, 5) == 3)
+            else if (UnityEngine.Random.Range(0, 10) == 2)
             {
-                enemyBeatList[cursor].GetComponent<BeatObject>().IsLaunched = true;
-                enemyBeatList[cursor].GetComponent<BeatObject>().IsEvil = true;
-                enemyBeatList[cursor].GetComponent<BeatObject>().IsLaunched = true;
-                enemyBeatList[cursor].GetComponent<BeatObject>().IsEvil = true;
+                GameObject newBeat = Instantiate(enemyBeat, enemyBeat.transform.position, enemyBeat.transform.rotation, enemyBar.transform);
+                newBeat.GetComponent<BeatObject>().IsEvil = true;
+                newBeat.GetComponent<BeatObject>().IsLaunched = true;
+                newBeat.GetComponent<BeatObject>().IsOriginal = false;
+                newBeat.GetComponent<BeatObject>().CreateNewBeat(BeatObject.BeatType.Enemy);
+
+                int beatType = UnityEngine.Random.Range(0, 3);
+                newBeat = Instantiate(playerBeat, playerBeat.transform.position, playerBeat.transform.rotation, playerBar.transform);
+                newBeat.GetComponent<BeatObject>().IsLaunched = true;
+                newBeat.GetComponent<BeatObject>().IsOriginal = false;
+                newBeat.GetComponent<BeatObject>().CreateNewBeat((BeatObject.BeatType)beatType);
             }
             else
             {
-                playerBeatList[cursor].GetComponent<BeatObject>().IsLaunched = true;
+                int beatType = UnityEngine.Random.Range(0, 3);
+                GameObject newBeat = Instantiate(playerBeat, playerBeat.transform.position, playerBeat.transform.rotation, playerBar.transform);
+                newBeat.GetComponent<BeatObject>().IsLaunched = true;
+                newBeat.GetComponent<BeatObject>().IsOriginal = false;
+                newBeat.GetComponent<BeatObject>().CreateNewBeat((BeatObject.BeatType)beatType);
             }
-            cursor++;
-            angerBuildUp++;
+            cursor++; // move cursor to the next beat in song
         }
-	}
 
+        //FindExpiredBeats();
+
+        MonitorCurrentBeats();
+        
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
     void CreateBeats()
     {
         deliveryBeats = new List<string>();
 
-        for (int i = 5; i < beatTimestamps.Length; i = i + 5)
+        for (int i = 5; i < beatTimestamps.Length; i += 5)
         {
             deliveryBeats.Add(beatTimestamps[i]);
         }
+    }
 
-        enemyBeatList = new GameObject[deliveryBeats.Count];
-        playerBeatList = new GameObject[deliveryBeats.Count];
-
-        for (int k = 0; k < deliveryBeats.Count; k++)
+    /// <summary>
+    /// 
+    /// </summary>
+    void CheckForBeat()
+    {
+        if (currentPlayerBeat != null)
         {
-            playerBeatList[k] = Instantiate(playerBeat, playerBeat.transform.position, playerBeat.transform.rotation, playerBar.transform);
-            enemyBeatList[k] = Instantiate(enemyBeat, enemyBeat.transform.position, enemyBeat.transform.rotation, enemyBar.transform);
+            BeatObject beatScript = currentPlayerBeat.GetComponent<BeatObject>();
+            
+            if (!beatScript.IsOriginal && 
+                !beatScript.MissedBeat && 
+                beatScript.DistanceToCenter >= -40 && 
+                beatScript.DistanceToCenter <= 40)
+            {
+                if (Input.GetKeyDown(KeyCode.Space) && 
+                    Input.GetKeyDown(KeyCode.A) && 
+                    beatScript.myBeatType == BeatObject.BeatType.Fire)
+                {
+                    Debug.Log("Destroying fire beat.");
+                    UpdateCurrentPlayerBeat(true);
+                }
+                else if (Input.GetKeyDown(KeyCode.Space) &&
+                         Input.GetKeyDown(KeyCode.S) && 
+                         beatScript.myBeatType == BeatObject.BeatType.Ice)
+                {
+                    Debug.Log("Destroying ice beat.");
+                    UpdateCurrentPlayerBeat(true);
+                }
+                else if (Input.GetKeyDown(KeyCode.Space) &&
+                         beatScript.myBeatType == BeatObject.BeatType.Normal)
+                {
+                    Debug.Log("Destroying normal beat.");
+                    UpdateCurrentPlayerBeat(true);
+                }
+                else
+                {
+                    // player hit beat button, but wrong button combo was used
+                }
+            }
+            else
+            {
+                // player hit beat button before beat was in center
+            }
         }
     }
 
-    void CheckForBeat()
+    /// <summary>
+    /// 
+    /// </summary>
+    void UpdateCurrentPlayerBeat(bool doDestroy)
     {
-        slash.Play();
-        beatZone.GetComponent<Image>().color = UnityEngine.Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f);
+        //currentPlayerBeat.GetComponent<Outline>().enabled = false;
+        if (doDestroy)
+        {
+            Destroy(currentPlayerBeat);
+            angerBuildUp++;
+        }
+        currentPlayerBeat = null;
+    }
+
+    void MonitorCurrentBeats()
+    {
+        if (currentPlayerBeat == null)
+        {
+            for (int i = 1; i < playerBar.transform.childCount; i++)
+            {
+                BeatObject beatScript = playerBar.transform.GetChild(i).gameObject.GetComponent<BeatObject>();
+                if (!beatScript.IsOriginal && !beatScript.MissedBeat)
+                {
+                    currentPlayerBeat = playerBar.transform.GetChild(i).gameObject;
+                    break;
+                }
+            }
+        }
+        else
+        {
+            BeatObject beatScript = currentPlayerBeat.GetComponent<BeatObject>();
+            if (!beatScript.IsOriginal && !beatScript.MissedBeat && beatScript.DistanceToCenter > 40)
+            {
+                // Whoops you missed a beat, time to update current player beat
+                beatScript.MissedBeat = true;
+                UpdateCurrentPlayerBeat(false);
+            }
+        }
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    void FindExpiredBeats()
+    {
+        foreach (Transform beat in playerBar.transform)
+        {
+            BeatObject beatScript = beat.gameObject.GetComponent<BeatObject>();
+            if (!beatScript.IsOriginal && beatScript.DistanceToCenter > 600)
+            {
+                Destroy(beat.gameObject);
+            }
+        }
+
+        foreach (Transform beat in enemyBar.transform)
+        {
+            BeatObject beatScript = beat.gameObject.GetComponent<BeatObject>();
+            if (!beatScript.IsOriginal && beatScript.DistanceToCenter < -600)
+            {
+                Destroy(beat.gameObject);
+            }
+        }
     }
 }
