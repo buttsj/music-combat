@@ -40,7 +40,7 @@ public class BeatObject : MonoBehaviour {
     private float distance;
 
     public BeatType myBeatType;
-    public enum BeatType { Ice, Fire, Normal, Enemy };
+    public enum BeatType { Left, Right, Up, Down, Normal, Enemy };
 
     
     // Use this for initialization
@@ -77,16 +77,23 @@ public class BeatObject : MonoBehaviour {
             case BeatType.Normal:
                 break;
 
-            case BeatType.Fire:
-                gameObject.GetComponent<Image>().color = Color.red;
+            case BeatType.Up:
+                gameObject.GetComponent<Image>().sprite = Resources.Load<Sprite>("Sprites/upCircle");
                 break;
 
-            case BeatType.Ice:
-                gameObject.GetComponent<Image>().color = Color.blue;
+            case BeatType.Down:
+                gameObject.GetComponent<Image>().sprite = Resources.Load<Sprite>("Sprites/downCircle");
+                break;
+
+            case BeatType.Left:
+                gameObject.GetComponent<Image>().sprite = Resources.Load<Sprite>("Sprites/leftCircle");
+                break;
+
+            case BeatType.Right:
+                gameObject.GetComponent<Image>().sprite = Resources.Load<Sprite>("Sprites/rightCircle");
                 break;
 
             case BeatType.Enemy:
-                gameObject.GetComponent<Image>().color = Color.black;
                 break;
         }
     }
