@@ -78,19 +78,19 @@ public class BeatObject : MonoBehaviour {
                 break;
 
             case BeatType.Up:
-                gameObject.GetComponent<Image>().sprite = Resources.Load<Sprite>("Sprites/upCircle");
+                gameObject.GetComponent<Image>().sprite = Resources.Load<Sprite>("Sprites/circleUp");
                 break;
 
             case BeatType.Down:
-                gameObject.GetComponent<Image>().sprite = Resources.Load<Sprite>("Sprites/downCircle");
+                gameObject.GetComponent<Image>().sprite = Resources.Load<Sprite>("Sprites/circleDown");
                 break;
 
             case BeatType.Left:
-                gameObject.GetComponent<Image>().sprite = Resources.Load<Sprite>("Sprites/leftCircle");
+                gameObject.GetComponent<Image>().sprite = Resources.Load<Sprite>("Sprites/circleLeft");
                 break;
 
             case BeatType.Right:
-                gameObject.GetComponent<Image>().sprite = Resources.Load<Sprite>("Sprites/rightCircle");
+                gameObject.GetComponent<Image>().sprite = Resources.Load<Sprite>("Sprites/circleRight");
                 break;
 
             case BeatType.Enemy:

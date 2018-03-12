@@ -27,13 +27,26 @@ public class BeatController : MonoBehaviour {
     private int angerBuildUp;
 
     private const int middleRegion = 40;
+
+    public float GetElapsedTime
+    {
+        get { return elapsedTime; }
+    }
     private float elapsedTime;
+
+    public bool AreWeDancing
+    {
+        get { return doDance; }
+        set { doDance = value; }
+    }
+    private bool doDance;
     
     /// <summary>
     /// 
     /// </summary>
     void Start()
     {
+        doDance = false;
         currentPlayerBeat = null;
         currentEnemyBeat = null;
         cursor = 0;
@@ -57,7 +70,7 @@ public class BeatController : MonoBehaviour {
         }
 
         // Generates new beat object when time to next beat is less than or equal to 3 seconds
-        if (float.Parse(deliveryBeats[cursor]) - elapsedTime <= 3.0f)
+        if (float.Parse(deliveryBeats[cursor]) - elapsedTime <= 3.0f && doDance)
         {
             if (angerBuildUp >= 10)
             {
@@ -100,9 +113,12 @@ public class BeatController : MonoBehaviour {
             }
             cursor++; // move cursor to the next beat in song
         }
+        else if (float.Parse(deliveryBeats[cursor]) - elapsedTime <= 3.0f && !doDance)
+        {
+            cursor++;
+        }
 
         MonitorCurrentBeats();
-        
     }
 
     /// <summary>
