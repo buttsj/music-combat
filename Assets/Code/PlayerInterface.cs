@@ -56,6 +56,7 @@ public class PlayerInterface : MonoBehaviour {
 
     // Use this for initialization
     void Start () {
+
         dancing = false;
         speed = 0.3f;
         danceTime = 10.0f;
